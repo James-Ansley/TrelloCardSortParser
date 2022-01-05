@@ -13,13 +13,13 @@ T = TypeVar('T')
 @dataclass(frozen=True)
 class Sort:
     """
-    Creates a list of sorts with a name, a list of groups, and optionally a
+    Creates a list of sorts with an ID, a list of groups, and optionally a
     timedelta for measuring the time taken to perform the sort.
 
-    Sort names should be unique and are used when hashing and checking
+    Sort IDs should be unique and are used when hashing and checking
     equality.
     """
-    name: str
+    id: str
     groups: list['Group']
     time: timedelta = None
 
@@ -28,14 +28,14 @@ class Sort:
         return set.union(*(group.cards for group in self.groups))
 
     def __str__(self):
-        return (f'{self.name}: '
+        return (f'{self.id}: '
                 f'[{", ".join(str(group) for group in self.groups)}]')
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.id)
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.id == other.id
 
 
 @dataclass
@@ -111,7 +111,7 @@ def co_occurrence_distance(sorts: list[Sort]) -> dict[T, dict[T, float]]:
     return co_occurrence
 
 
-def co_edit_distance(sorts: list[Sort]) -> dict[str, dict[str, int]]:
+def co_edit_distance(sorts: list[Sort]) -> dict[Sort, dict[Sort, int]]:
     """
     Returns the pairwise edit distance matrix of cards in the given sort list
     as a nested dictionary mapping two sort names to the edit distance of the
@@ -121,7 +121,7 @@ def co_edit_distance(sorts: list[Sort]) -> dict[str, dict[str, int]]:
     for sort1 in sorts:
         for sort2 in sorts:
             distance = edit_distance(sort1, sort2)
-            pairwise_distances[sort1.name][sort2.name] = distance
+            pairwise_distances[sort1][sort2] = distance
     return pairwise_distances
 
 
