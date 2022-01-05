@@ -146,16 +146,11 @@ def _cull(s_c, v, sorts, d):
     Lines 6 and 7 from Figure 2, Deibel et al. Removes sort `v` from `s_c`
     and any sorts outside the max distance `d` from `v`
 
-    This can be made more efficient by making Sorts hashable and using a
-    set here and in the find_clique functions; however, this should only be
-    an issue for very large sorts.
-
     **See:** Deibel, K., Anderson, R., & Anderson, R. (2005). Using edit
     distance to analyze card sorts. Expert Systems, 22(3), 129-138.
     """
-    _s_v = {x for x in sorts if x != v and edit_distance(v, x) <= d}
-    _s_c = s_c & {x for x in s_c if x in _s_v}
-    return _s_c
+    s_v = {x for x in sorts if x != v and edit_distance(v, x) <= d}
+    return s_c & s_v
 
 
 def _max_culled(s_c, sorts, d):
