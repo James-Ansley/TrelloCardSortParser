@@ -92,3 +92,23 @@ smallest amount.
 
 The sort used as the center of the clique can be a probe sort not in the set of
 sorts being analysed but will not be included in the resulting clique.
+
+#### Clustering
+
+While most of the analysis has been done in Python, R scripts are used to
+perform the Partitioning Around Medoids (PAM) and Hierarchical Clustering. This
+is mostly because I do not trust Python implementations of these methods; it was
+hard enough to find an implementation of the Hungarian algorithm that wasn't
+completely broken so, I decided not to risk it with clustering.
+
+##### Hierarchical Clustering
+
+`hiearchical-clustering.R` reads in a co-occurrence distance matrix from a CSV
+and produces a dendrogram of the resulting hierarchical clustering and produces
+the clusters resulting from cutting the dendrogram at a specified number of
+clusters.
+
+##### Partitioning Around K-Medoids
+
+`k-medoids-clustering.R` reads in a pairwise edit distance matrix from a CSV and
+produces the resulting clusters from partitioning around k-medoids.
