@@ -59,9 +59,9 @@ analyze card sorts. Expert Systems, 22(3), 129-138.
 #### Co-Occurrence
 
 The co-occurrence matrix[^2] of two sorts can be calculated using the
-`co_occurrence` function. Which produces the co-occurrence values scaled between
-0 and 1 for each pair of cards. The matrix is represented as a nested dictionary
-mapping two card IDs to their respective co-occurrence.
+`co_occurrence_matrix` function. Which produces the co-occurrence values scaled
+between 0 and 1 for each pair of cards. The matrix is represented as a nested
+dictionary mapping two card IDs to their respective co-occurrence.
 
 The co-occurrence distance matrix[^3] can be calculated using
 the `co_occurrence_distance` function. Which produces the co-occurrence distance
