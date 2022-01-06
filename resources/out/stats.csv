@@ -1,0 +1,7 @@
+Sort ID,Num Groups,Time (sec),Context Probe,Pattern Probe
+p2-1,2,31,2,2
+p1-1,2,52,0,2
+p3-1,2,41,2,0
+p3-2,2,20,2,0
+p1-2,2,64,2,0
+p2-2,3,51,2,2
