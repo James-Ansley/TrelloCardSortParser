@@ -3,7 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import timedelta
 from itertools import permutations
-from typing import TypeVar
+from typing import TypeVar, Iterable, Sequence
 
 from munkres import make_cost_matrix, Munkres
 
@@ -22,14 +22,22 @@ class Sort:
     id: str
     groups: list['Group']
     time: timedelta = None
+    cards: set[str] = None  # To stop my IDE from complaining
 
-    @property
-    def cards(self):
-        return set.union(*(group.cards for group in self.groups))
+    def __post_init__(self):
+        # __setattr__ to workaround frozen instance.
+        # https://docs.python.org/3/library/dataclasses.html#frozen-instances
+        cards = set.union(*(group.cards for group in self.groups))
+        object.__setattr__(self, 'cards', cards)
 
     def __str__(self):
         return (f'{self.id}: '
                 f'[{", ".join(str(group) for group in self.groups)}]')
+
+    def __repr__(self):
+        # Often more useful to just use the ID when printing nested data
+        # structures of sorts.
+        return self.id
 
     def __hash__(self):
         return hash(self.id)
@@ -70,7 +78,7 @@ def edit_distance(sort1: Sort, sort2: Sort) -> int:
     return len(sort1.cards) - running_sum
 
 
-def co_occurrence_matrix(sorts: list[Sort]) -> dict[T, dict[T, float]]:
+def co_occurrence_matrix(sorts: Sequence[Sort]) -> dict[T, dict[T, float]]:
     """
     Returns the co-occurrence matrix of cards in the given sort list as a
     nested dictionary mapping two card IDs to the co-occurrence of the two
@@ -95,7 +103,7 @@ def co_occurrence_matrix(sorts: list[Sort]) -> dict[T, dict[T, float]]:
     return occurrences
 
 
-def co_occurrence_distance(sorts: list[Sort]) -> dict[T, dict[T, float]]:
+def co_occurrence_distance(sorts: Sequence[Sort]) -> dict[T, dict[T, float]]:
     """
     Returns the co-occurrence distance matrix of cards in the given sort list
     as a nested dictionary mapping two card IDs to the co-occurrence distance
@@ -111,7 +119,7 @@ def co_occurrence_distance(sorts: list[Sort]) -> dict[T, dict[T, float]]:
     return co_occurrence
 
 
-def co_edit_distance(sorts: list[Sort]) -> dict[Sort, dict[Sort, int]]:
+def co_edit_distance(sorts: Iterable[Sort]) -> dict[Sort, dict[Sort, int]]:
     """
     Returns the pairwise edit distance matrix of cards in the given sort list
     as a nested dictionary mapping two sort names to the edit distance of the
@@ -125,7 +133,7 @@ def co_edit_distance(sorts: list[Sort]) -> dict[Sort, dict[Sort, int]]:
     return pairwise_distances
 
 
-def find_neighbourhood(sort: Sort, sorts: list[Sort], d: int) -> list[Sort]:
+def find_neighbourhood(sort: Sort, sorts: Iterable[Sort], d: int) -> set[Sort]:
     """
     Returns the d-neighbourhood of a sort as a list of sorts. The given sort
     may be a probe sort not included in the sorts list; however, the returned
@@ -134,10 +142,10 @@ def find_neighbourhood(sort: Sort, sorts: list[Sort], d: int) -> list[Sort]:
     **See:** Deibel, K., Anderson, R., & Anderson, R. (2005). Using edit
     distance to analyze card sorts. Expert Systems, 22(3), 129-138.
     """
-    neighbourhood = []
+    neighbourhood = set()
     for other in sorts:
         if edit_distance(sort, other) <= d:
-            neighbourhood.append(other)
+            neighbourhood.add(other)
     return neighbourhood
 
 
