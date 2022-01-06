@@ -7,11 +7,11 @@ from utils.pairwise_writer import write_pairs, map_pairs
 from utils.sorts import edit_distance, co_occurrence_distance, co_edit_distance
 from utils.trello_parser import parse_sorts_in_dir
 
-CARD_ID_PATH = 'resources/question_data.csv'
-SORT1_JSONS_PATH = 'resources/sort1'
-SORT2_JSONS_PATH = 'resources/sort2'
-PROBE_JSONS_PATH = 'resources/probes'
-OUT_DIR = 'resources/out'
+CARD_ID_PATH = 'example/question_data.csv'
+SORT1_JSONS_PATH = 'example/sort1'
+SORT2_JSONS_PATH = 'example/sort2'
+PROBE_JSONS_PATH = 'example/probes'
+OUT_DIR = 'example/out'
 
 
 def main():
