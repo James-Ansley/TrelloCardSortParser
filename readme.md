@@ -43,6 +43,9 @@ card sorts. It is important that sort IDs are unique as these are used to hash
 and check equality between sorts. Card prompts or Card IDs should also be unique
 as these are used to identify cards.
 
+An example `main` module has been included to demonstrate the basic use of some
+available functions.
+
 #### Edit Distance
 
 The edit distance between two sorts can be calculated using the
@@ -112,3 +115,35 @@ clusters.
 
 `k-medoids-clustering.R` reads in a pairwise edit distance matrix from a CSV and
 produces the resulting clusters from partitioning around k-medoids.
+
+### Writing Data
+
+Two helper functions are provided in the `pairwise_writer` module to help write
+the results of the nested dictionary co-occurrence and pairwise edit distance
+matrices to CSV files.
+
+`write_pairs` will write a nested dictionary of type `dict[T, dict[T, V]]` to a
+CSV file. For example:
+
+```python
+co_distance = co_occurrence_distance(sorts)
+write_pairs(f, co_distance)
+```
+
+will write the co-occurrence distance matrix to the file `f`. The header row and
+column of the resulting file will be the card IDs and the values will be the
+co-occurrence distance floats.
+
+`map_pairs` will map the headers (keys) and data (nested values) of a nested
+dictionary to values using the `header` and `data` function parameters
+respectively. By default, these functions map values to themselves. For example:
+
+```python
+pairwise_edit_distance = co_edit_distance(sorts)
+pairs = map_pairs(pairwise_edit_distance, header=lambda s: s.id)
+```
+
+will map the sorts (headers/keys) of the nested dictionary of pairwise edit
+distances (of type `dict[Sort, dict[Sort, int]]`) to their respective IDs. These
+pairs can then be used to write the pairwise edit distance matrix to a CSV file
+using `write_pairs` which will now use the sort IDs as headers.
