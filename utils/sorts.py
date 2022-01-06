@@ -13,7 +13,7 @@ T = TypeVar('T')
 @dataclass(frozen=True)
 class Sort:
     """
-    Creates a list of sorts with an ID, a list of groups, and optionally a
+    A sort with an ID, a list of groups, and optionally a
     timedelta for measuring the time taken to perform the sort.
 
     Sort IDs should be unique and are used when hashing and checking
