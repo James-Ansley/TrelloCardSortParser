@@ -3,7 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import timedelta
 from itertools import permutations
-from typing import TypeVar, Iterable, Sequence
+from typing import TypeVar, Iterable, Collection
 
 from munkres import make_cost_matrix, Munkres
 
@@ -13,22 +13,17 @@ T = TypeVar('T')
 @dataclass(frozen=True)
 class Sort:
     """
-    A sort with an ID, a list of groups, and optionally a
-    timedelta for measuring the time taken to perform the sort.
+    A sort with an ID, a list of groups, a set of all cards used in the sort
+    and optionally a timedelta for measuring the time taken to perform the
+    sort.
 
     Sort IDs should be unique and are used when hashing and checking
     equality.
     """
     id: str
     groups: list['Group']
+    cards: set
     time: timedelta = None
-    cards: set[str] = None  # To stop my IDE from complaining
-
-    def __post_init__(self):
-        # __setattr__ to workaround frozen instance.
-        # https://docs.python.org/3/library/dataclasses.html#frozen-instances
-        cards = set.union(*(group.cards for group in self.groups))
-        object.__setattr__(self, 'cards', cards)
 
     def __str__(self):
         return (f'{self.id}: '
@@ -78,15 +73,16 @@ def edit_distance(sort1: Sort, sort2: Sort) -> int:
     return len(sort1.cards) - running_sum
 
 
-def co_occurrence_matrix(sorts: Sequence[Sort]) -> dict[T, dict[T, float]]:
+def co_occurrence_matrix(
+        sorts: Collection[Sort], cards: set) -> dict[T, dict[T, float]]:
     """
     Returns the co-occurrence matrix of cards in the given sort list as a
     nested dictionary mapping two card IDs to the co-occurrence of the two
     cards.
 
-    Co-occurrences are scaled to be between 0 and 1.
+    This is simply a count of how many times any two cards are put together
+    in the same group.
     """
-    cards = sorted(sorts[0].cards)
     occurrences = {card1: {card2: 0 for card2 in cards} for card1 in cards}
     for sort in sorts:
         for group in sort.groups:
@@ -96,26 +92,24 @@ def co_occurrence_matrix(sorts: Sequence[Sort]) -> dict[T, dict[T, float]]:
             card_pairs = permutations(group.cards, 2)
             for card1, card2 in card_pairs:
                 occurrences[card1][card2] += 1
-
-    for card1, row in occurrences.items():
-        for card2, value in row.items():
-            occurrences[card1][card2] = value / len(sorts)
     return occurrences
 
 
-def co_occurrence_distance(sorts: Sequence[Sort]) -> dict[T, dict[T, float]]:
+def co_occurrence_distance(
+        sorts: Collection[Sort], cards: set) -> dict[T, dict[T, float]]:
     """
     Returns the co-occurrence distance matrix of cards in the given sort list
     as a nested dictionary mapping two card IDs to the co-occurrence distance
     of the two cards.
 
-    Co-occurrence distances are scaled to be between 0 and 1.
+    This is simply a count of how many times any two cards are NOT put together
+    in the same group.
     """
-    cards = sorted(sorts[0].cards)
-    co_occurrence = co_occurrence_matrix(sorts)
+    co_occurrence = co_occurrence_matrix(sorts, cards)
     for card1 in cards:
         for card2 in cards:
-            co_occurrence[card1][card2] = 1 - co_occurrence[card1][card2]
+            distance = len(sorts) - co_occurrence[card1][card2]
+            co_occurrence[card1][card2] = distance
     return co_occurrence
 
 
@@ -133,7 +127,8 @@ def co_edit_distance(sorts: Iterable[Sort]) -> dict[Sort, dict[Sort, int]]:
     return pairwise_distances
 
 
-def find_neighbourhood(sort: Sort, sorts: Iterable[Sort], d: int) -> set[Sort]:
+def find_neighbourhood(
+        sort: Sort, sorts: Iterable[Sort], max_dist: int) -> set[Sort]:
     """
     Returns the d-neighbourhood of a sort as a list of sorts. The given sort
     may be a probe sort not included in the sorts list; however, the returned
@@ -142,43 +137,33 @@ def find_neighbourhood(sort: Sort, sorts: Iterable[Sort], d: int) -> set[Sort]:
     **See:** Deibel, K., Anderson, R., & Anderson, R. (2005). Using edit
     distance to analyze card sorts. Expert Systems, 22(3), 129-138.
     """
-    neighbourhood = set()
-    for other in sorts:
-        if edit_distance(sort, other) <= d:
-            neighbourhood.add(other)
-    return neighbourhood
+    return {s for s in sorts if edit_distance(sort, s) <= max_dist}
 
 
-def _cull(s_c, v, sorts, d):
-    """
-    Lines 6 and 7 from Figure 2, Deibel et al. Removes sort `v` from `s_c`
-    and any sorts outside the max distance `d` from `v`
-
-    **See:** Deibel, K., Anderson, R., & Anderson, R. (2005). Using edit
-    distance to analyze card sorts. Expert Systems, 22(3), 129-138.
-    """
-    s_v = {x for x in sorts if x != v and edit_distance(v, x) <= d}
-    return s_c & s_v
+def _get_new_candidates(v, sorts, max_dist):
+    clique_candidates = find_neighbourhood(v, sorts, max_dist)
+    clique_candidates.discard(v)
+    return clique_candidates
 
 
-def _max_culled(s_c, sorts, d):
-    """
-    Returns all `v` and resulting `s_c` such that `s_c` is the maximum length
-    after s_c is culled.
-    """
+def _greedy_select(current_candidates, sorts, max_dist):
     max_pairs = []
     max_len = 0
-    for i, v in enumerate(s_c):
-        new_s_c = _cull(s_c, v, sorts, d)
-        if len(new_s_c) > max_len:
-            max_len = len(new_s_c)
-            max_pairs = [(v, new_s_c)]
-        elif len(new_s_c) == max_len:
-            max_pairs.append((v, new_s_c))
+    for v in current_candidates:
+        new_candidates = _get_new_candidates(v, sorts, max_dist)
+        new_candidates &= current_candidates
+        candidate_size = len(new_candidates)
+        if candidate_size > max_len:
+            max_len = candidate_size
+            max_pairs = [(v, new_candidates)]
+        elif candidate_size == max_len:
+            max_pairs.append((v, new_candidates))
     return max_pairs
 
 
-def find_clique_random(sort: Sort, sorts: list[Sort], d: int) -> set[Sort]:
+def find_clique_random(sort: Sort,
+                       sorts: Iterable[Sort],
+                       max_dist: int) -> set[Sort]:
     """
     Returns the d-clique of a sort as a list of sorts using a random heuristic.
     The given sort may be a probe sort not included in the sorts list;
@@ -188,15 +173,18 @@ def find_clique_random(sort: Sort, sorts: list[Sort], d: int) -> set[Sort]:
     distance to analyze card sorts. Expert Systems, 22(3), 129-138.
     """
     clique = {sort} if sort in sorts else set()
-    s_c = {x for x in sorts if x != sort and edit_distance(sort, x) <= d}
-    while s_c:
-        v = random.sample(s_c, 1)[0]
+    candidates = _get_new_candidates(sort, sorts, max_dist)
+    while candidates:
+        v = random.sample(candidates, 1)[0]
         clique.add(v)
-        s_c = _cull(s_c, v, sorts, d)
+        new_candidates = _get_new_candidates(sort, sorts, max_dist)
+        candidates &= new_candidates
     return clique
 
 
-def find_clique_greedy(sort: Sort, sorts: list[Sort], d: int) -> set[Sort]:
+def find_clique_greedy(sort: Sort,
+                       sorts: Iterable[Sort],
+                       max_dist: int) -> set[Sort]:
     """
     Returns the d-clique of a sort as a list of sorts using the greedy
     heuristic described by Deibel et al. The given sort may be a probe sort
@@ -207,11 +195,11 @@ def find_clique_greedy(sort: Sort, sorts: list[Sort], d: int) -> set[Sort]:
     distance to analyze card sorts. Expert Systems, 22(3), 129-138.
     """
     clique = {sort} if sort in sorts else set()
-    s_c = {x for x in sorts if x != sort and edit_distance(sort, x) <= d}
-    while s_c:
+    candidates = _get_new_candidates(sort, sorts, max_dist)
+    while candidates:
         # In cases where several sorts satisfy the greedy rule,
         # one is chosen randomly
-        possible_vs = _max_culled(s_c, sorts, d)
-        v, s_c = random.choice(possible_vs)
+        best_candidates = _greedy_select(candidates, sorts, max_dist)
+        v, candidates = random.choice(best_candidates)
         clique.add(v)
     return clique

@@ -16,6 +16,7 @@ OUT_DIR = 'example/out'
 
 def main():
     card_ids = get_card_ids(CARD_ID_PATH)
+    cards = set(card_ids.values())
     sort1 = parse_sorts_in_dir(SORT1_JSONS_PATH, card_ids)
     sort2 = parse_sorts_in_dir(SORT2_JSONS_PATH, card_ids)
     probe_sorts = parse_sorts_in_dir(PROBE_JSONS_PATH, card_ids)
@@ -34,7 +35,7 @@ def main():
         # Pairwise edit distance matrix
         co_distance_path = get_csv_path('co_distance_matrix', sort_num)
         with open(co_distance_path, 'w', newline='') as f:
-            write_co_occurrence_distance(f, sort)
+            write_co_occurrence_distance(f, sort, cards)
 
 
 def get_card_ids(path, prompt_header='prompt', id_header='id'):
@@ -72,11 +73,11 @@ def write_simple_stats(f, sorts, probe_sorts):
     writer.write_all(sorts)
 
 
-def write_co_occurrence_distance(f, sorts):
+def write_co_occurrence_distance(f, sorts, cards):
     """
     Writes the pairwise co-occurrence distance between each sort to a CSV file.
     """
-    co_distance = co_occurrence_distance(sorts)
+    co_distance = co_occurrence_distance(sorts, cards)
     write_pairs(f, co_distance)
 
 

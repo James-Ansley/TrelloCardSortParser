@@ -1,7 +1,7 @@
-,add-birds1,add-pencil1,add-pencil2,sub-birds1,sub-birds2,sub-pencil1
-add-birds1,0.0,0.33333333333333337,0.0,1.0,1.0,1.0
-add-pencil1,0.33333333333333337,0.0,0.33333333333333337,1.0,1.0,0.6666666666666667
-add-pencil2,0.0,0.33333333333333337,0.0,1.0,1.0,1.0
-sub-birds1,1.0,1.0,1.0,0.0,0.0,0.33333333333333337
-sub-birds2,1.0,1.0,1.0,0.0,0.0,0.33333333333333337
-sub-pencil1,1.0,0.6666666666666667,1.0,0.33333333333333337,0.33333333333333337,0.0
+,add-birds1,sub-birds1,add-pencil2,sub-pencil1,sub-birds2,add-pencil1
+add-birds1,0,3,0,3,3,1
+sub-birds1,3,0,3,1,0,3
+add-pencil2,0,3,0,3,3,1
+sub-pencil1,3,1,3,0,1,2
+sub-birds2,3,0,3,1,0,3
+add-pencil1,1,3,1,2,3,0

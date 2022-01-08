@@ -7,16 +7,16 @@ from dateutil.parser import isoparse
 from utils.sorts import Sort, Group
 
 
-def parse_board(f: TextIO, card_mapping: dict[str, Hashable] = None) -> Sort:
+def parse_board(f: TextIO, card_mapping: dict[str, Hashable]) -> Sort:
     """
     Extracts the information from a trello board json file.
 
-    An optional card_mapping can be provided to map the card prompts to an ID
-    which may be more useful for analysis. If provided, card prompts will be
-    mapped to the given ID when parsing and used in place of the card prompt.
+    A card_mapping maps the card prompts to an ID which is usually more
+    useful for analysis. Card prompts will be mapped to the given ID when
+    parsing and used in place of the card prompt.
 
     :param f: a TextIO Stream of the trello board json file
-    :param card_mapping: an optional mapping of card names to card ids
+    :param card_mapping: a mapping of card names to card ids
     :return: a Sort object
     """
     data = json.load(f)
@@ -78,7 +78,8 @@ def parse_board(f: TextIO, card_mapping: dict[str, Hashable] = None) -> Sort:
     groups = [group for group in groups_by_id.values() if group.cards]
 
     sort_name = data['name']
-    sort = Sort(sort_name, groups, total_sort_time)
+    cards = set(card_mapping.values())
+    sort = Sort(sort_name, groups, cards, total_sort_time)
     return sort
 
 
