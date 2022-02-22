@@ -4,7 +4,7 @@ library(ggplot2)
 co_occurrence_distance_dir <- "example/out/co_distance_matrix_1.csv"
 output_file <- "example/out/hclust_1.csv"
 title <- "Sort 1: HCA(method='complete')"
-num_clusters <- 2
+num_clusters <- 3
 
 
 df <- read.csv(co_occurrence_distance_dir, header = TRUE, row.names = 1)

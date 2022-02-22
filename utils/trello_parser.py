@@ -26,12 +26,13 @@ def parse_board(f: TextIO, card_mapping: dict[str, Hashable]) -> Sort:
 
     # Cards are linked to their lists by list ID. So, a temporary mapping
     # from list IDs to groups is needed.
-    groups_by_id = {}
+    card_sets = {}
+    group_names = {}
     for trello_list in trello_lists:
         group_name = trello_list['name']
         list_id = trello_list['id']
-        group = Group(group_name)
-        groups_by_id[list_id] = group
+        group_names[list_id] = group_name
+        card_sets[list_id] = set()
 
     cards = data['cards']
     # Participants may accidentally add cards which are then deleted, "closed".
@@ -39,13 +40,9 @@ def parse_board(f: TextIO, card_mapping: dict[str, Hashable]) -> Sort:
 
     for card in cards:
         group_id = card['idList']
-        group = groups_by_id[group_id]
-        # It may be more useful to map card prompts to an ID for analysis
-        if card_mapping is not None:
-            card_data = card_mapping[card['name']]
-        else:
-            card_data = card['name']
-        group.cards.add(card_data)
+        card_set = card_sets[group_id]
+        card_data = card_mapping[card['name']]
+        card_set.add(card_data)
 
     actions = data['actions']
     actions.sort(key=lambda x: isoparse(x['date']))
@@ -74,8 +71,13 @@ def parse_board(f: TextIO, card_mapping: dict[str, Hashable]) -> Sort:
     end_time = isoparse(actions[-1]['date'])
     total_sort_time = end_time - start_time
 
-    # Empty groups are discarded.
-    groups = [group for group in groups_by_id.values() if group.cards]
+    groups = []
+    for group_id in card_sets:
+        cards = frozenset(card_sets[group_id])
+        name = group_names[group_id]
+        # Empty groups are discarded.
+        if cards:
+            groups.append(Group(name, cards))
 
     sort_name = data['name']
     cards = set(card_mapping.values())

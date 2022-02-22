@@ -41,10 +41,10 @@ class Sort:
         return self.id == other.id
 
 
-@dataclass
+@dataclass(frozen=True)
 class Group:
     name: str
-    cards: set[T] = field(default_factory=set)
+    cards: frozenset[T] = field(default_factory=frozenset)
 
     def __str__(self):
         return f'{self.name}: [{", ".join(map(str, self.cards))}]'
@@ -203,3 +203,51 @@ def find_clique_greedy(sort: Sort,
         v, candidates = random.choice(best_candidates)
         clique.add(v)
     return clique
+
+
+def group_jaccard_distance(group1: Group, group2: Group) -> float:
+    """
+    Returns the Jaccard distance between two groups (between 0 and 1).
+    """
+    size_union = len(group1.cards | group2.cards)
+    size_intersection = len(group1.cards & group2.cards)
+    return (size_union - size_intersection) / size_union
+
+
+def match_groups(sort1: Sort, sort2: Sort) -> dict[Group, list[Group]]:
+    """
+    Returns a dictionary mapping the groups of sort 1 to a list of groups
+    from sort 2 such that the Jaccard distance between the key and value
+    groups is minimal. In effect, assigning each group from sort 2 to the
+    'closest' groups in sort 1.
+
+    This is useful when performing category analysis on cliques or
+    neighbourhoods.
+    """
+    matches = {g: [] for g in sort1.groups}
+    for group2 in sort2.groups:
+        min_groups = []
+        min_distance = 1
+        for group1 in sort1.groups:
+            distance = group_jaccard_distance(group1, group2)
+            if distance < min_distance:
+                min_distance = distance
+                min_groups = []
+            if distance == min_distance:
+                min_groups.append(group1)
+        for group1 in min_groups:
+            matches[group1].append(group2)
+    return matches
+
+
+def collapse_matches(matches: Iterable[dict[Group, list[Group]]]
+) -> dict[Group, list[Group]]:
+    """
+    Squashes matches from `match_groups` to a single dictionary mapping a
+    group to all groups that match that group.
+    """
+    collapsed = defaultdict(list)
+    for match in matches:
+        for group, matched_groups in match.items():
+            collapsed[group].extend(matched_groups)
+    return collapsed

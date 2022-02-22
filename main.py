@@ -28,14 +28,17 @@ def main():
 
     for sort_num, sort in (1, sort1), (2, sort2):
         # Co-occurrence distance matrix
+        pairwise_edit_distance = co_edit_distance(sort)
+        pairs = map_pairs(pairwise_edit_distance, header=lambda s: s.id)
         co_edit_distance_path = get_csv_path('pairwise_edit_distance', sort_num)
         with open(co_edit_distance_path, 'w', newline='') as f:
-            write_pairwise_edit_distance(f, sort)
+            write_pairs(f, pairs)
 
         # Pairwise edit distance matrix
+        co_distance = co_occurrence_distance(sort, cards)
         co_distance_path = get_csv_path('co_distance_matrix', sort_num)
         with open(co_distance_path, 'w', newline='') as f:
-            write_co_occurrence_distance(f, sort, cards)
+            write_pairs(f, co_distance)
 
 
 def get_card_ids(path, prompt_header='prompt', id_header='id'):
@@ -71,23 +74,6 @@ def write_simple_stats(f, sorts, probe_sorts):
 
     writer.write_header()
     writer.write_all(sorts)
-
-
-def write_co_occurrence_distance(f, sorts, cards):
-    """
-    Writes the pairwise co-occurrence distance between each sort to a CSV file.
-    """
-    co_distance = co_occurrence_distance(sorts, cards)
-    write_pairs(f, co_distance)
-
-
-def write_pairwise_edit_distance(f, sorts):
-    """
-    Writes the pairwise edit distance between each sort to a CSV file.
-    """
-    pairwise_edit_distance = co_edit_distance(sorts)
-    pairs = map_pairs(pairwise_edit_distance, header=lambda s: s.id)
-    write_pairs(f, pairs)
 
 
 if __name__ == '__main__':
