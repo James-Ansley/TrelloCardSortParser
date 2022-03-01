@@ -8,12 +8,15 @@ set of tools and demonstration of methods to help with the process of analysing
 card sorting data. Feel free to mosey around and pick out the functions that
 might be of most use to you.
 
+For examples of how this project was used see[^1][^2].
+
 ## Features
 
 ### Parsing Card Sorts
 
 Trello Board json files can be parsed to create Sort objects. An example set of
-card sorts can be found at https://trello.com/examplecardsort.
+card sorts can be found at https://trello.com/examplecardsort. The example data
+is used in the example `main.py` file.
 
 A [sort prototype][sort-prototype] board containing a single list of predefined
 cards was constructed and copied for each individual sorting exercise. It is
@@ -49,45 +52,32 @@ available functions.
 #### Edit Distance
 
 The edit distance between two sorts can be calculated using the
-`edit_distance` function[^1]. And the pairwise edit distance of a list of sorts
+`edit_distance` function[^3]. And the pairwise edit distance of a list of sorts
 can be calculated using the `co_edit_distance` function which produces a nested
 dictionary mapping two sorts to their respective edit distance.
 
-[^1]: Deibel, K., Anderson, R., & Anderson, R. (2005). Using edit distance to
-analyze card sorts. Expert Systems, 22(3), 129-138.
-
 #### Co-Occurrence
 
-The co-occurrence matrix[^2] of two sorts can be calculated using the
+The co-occurrence matrix[^4] of two sorts can be calculated using the
 `co_occurrence_matrix` function. Which produces the co-occurrence values scaled
 between 0 and 1 for each pair of cards. The matrix is represented as a nested
 dictionary mapping two card IDs to their respective co-occurrence.
 
-The co-occurrence distance matrix[^3] can be calculated using
+The co-occurrence distance matrix[^5] can be calculated using
 the `co_occurrence_distance` function. Which produces the co-occurrence distance
 values scaled between 0 and 1 for each pair of cards. The matrix is represented
 as a nested dictionary.
 
-[^2]: Kathy Baxter, Catherine Courage, and Kelly Caine. 2015. Chapter 11 - Card
-Sorting. In Understanding your Users (Second Edition) (second edition ed.),
-Kathy Baxter, Catherine Courage, and Kelly Caine (Eds.). Morgan Kaufmann,
-Boston, 302–337. https://doi.org/10.1016/B978-0-12-800232-2.00011-0
-
-[^3]: Tom Tullis and Bill Albert. 2013. Chapter 9 - Special Topics. In Measuring
-the User Experience (Second Edition) (second edi ed.), Tom Tullis and Bill
-Albert (Eds.). Morgan Kaufmann, Boston,
-209–236. https://doi.org/10.1016/B978-0-12-415781-1.00009-1
-
 #### Neighborhoods
 
-d-neighborhoods[^1] of sorts can be calculated using the `find_neighbourhood`
+d-neighborhoods[^3] of sorts can be calculated using the `find_neighbourhood`
 function. The sort used as the center of the neighbourhood can be a probe sort
 not in the set of sorts being analysed but will not be included in the resulting
 neighbourhood.
 
 #### Cliques
 
-d-cliques[^1] of sorts can be calculated using the `find_clique_random` and
+d-cliques[^3] of sorts can be calculated using the `find_clique_random` and
 `find_clique_greedy` functions. The random algorithm randomly selects a sort to
 add to the clique and the greedy algorithm selects the sort that reduces the
 size of the set of possible sorts that can still be added to the clique by the
@@ -147,3 +137,28 @@ will map the sorts (headers/keys) of the nested dictionary of pairwise edit
 distances (of type `dict[Sort, dict[Sort, int]]`) to their respective IDs. These
 pairs can then be used to write the pairwise edit distance matrix to a CSV file
 using `write_pairs` which will now use the sort IDs as headers.
+
+[^1]: James Finnie-Ansley, Paul Denny, and Andrew Luxton-Reilly. 2021. A
+Semblance of Similarity: Student Categorisation of Simple Algorithmic Problem
+Statements. In Proceedings of the 17th ACM Conference on International Computing
+Education Research (ICER 2021), August 16–19, 2021, Virtual Event, USA. ACM, New
+York, NY, USA, 15 pages. https://doi.org/10.1145/3446871.3469745
+
+[^2]: James Finnie-Ansley, Paul Denny, and Andrew Luxton-Reilly. 2022. Play Your
+Cards Right: Using Quantitative Card-Sort Data to Examine Students’ Pattern-Like
+Concepts. In Proceedings of the 53rd ACM Technical Symposium on Computer Science
+Education V. 1 (SIGCSE 2022), March 3–5, 2022, Providence, RI, USA. ACM, New
+York, NY, USA, 7 pages. https://doi.org/10.1145/3478431.3499343
+
+[^3]: Deibel, K., Anderson, R., & Anderson, R. (2005). Using edit distance to
+analyze card sorts. Expert Systems, 22(3), 129-138.
+
+[^4]: Kathy Baxter, Catherine Courage, and Kelly Caine. 2015. Chapter 11 - Card
+Sorting. In Understanding your Users (Second Edition) (second edition ed.),
+Kathy Baxter, Catherine Courage, and Kelly Caine (Eds.). Morgan Kaufmann,
+Boston, 302–337. https://doi.org/10.1016/B978-0-12-800232-2.00011-0
+
+[^5]: Tom Tullis and Bill Albert. 2013. Chapter 9 - Special Topics. In Measuring
+the User Experience (Second Edition) (second edi ed.), Tom Tullis and Bill
+Albert (Eds.). Morgan Kaufmann, Boston,
+209–236. https://doi.org/10.1016/B978-0-12-415781-1.00009-1
