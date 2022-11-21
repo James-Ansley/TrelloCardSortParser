@@ -177,7 +177,7 @@ def find_clique_random(sort: Sort,
     while candidates:
         v = random.sample(candidates, 1)[0]
         clique.add(v)
-        new_candidates = _get_new_candidates(sort, sorts, max_dist)
+        new_candidates = _get_new_candidates(v, sorts, max_dist)
         candidates &= new_candidates
     return clique
 
